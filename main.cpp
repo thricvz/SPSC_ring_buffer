@@ -4,12 +4,11 @@
 #include <thread>
 #include <format>
 
-spsc_ring_buffer<int, 10> RING_BUFFER ;
-
+spsc_ring_buffer<int, 5> RING_BUFFER ;
 
 void produce_sequence() {
-  for (auto i{0}; i < 20; i++) {
-    RING_BUFFER.produce(2*i);
+  for (auto i{0}; i < 40; i++) {
+    RING_BUFFER.produce(i);
   }
 
 }; 
@@ -17,7 +16,7 @@ void produce_sequence() {
 void consumer_sequence() {
   while(true) {
     auto element = std::move(RING_BUFFER.consume());
-    std::cout << std::format("Unstacked element : {}\n", element);
+    std::cout << std::format("New product {}\n", element);
   }
 }; 
 
@@ -31,4 +30,5 @@ int main() {
 
   return 0;
 }
+
 
