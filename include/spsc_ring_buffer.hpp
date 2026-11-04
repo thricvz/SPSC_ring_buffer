@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <cstdint>
 #include <iostream>
+#include <climits>
 #include <mutex>
 
-#define MAX_INT32_VALUE 23
 template<typename T, std::int32_t N_ELEMENTS >
 
 //weird bug that can happen when the int32_t wrapper overflows
@@ -30,9 +30,19 @@ class spsc_ring_buffer {
 
     };
 
-    /*void produce(T&& element) {
+    void produce(T&& element) {
 
-    };*/
+      while(consumer_producer_distance() > N_ELEMENTS) {
+        ; // wait until we can write to memory without erasing
+      }
+
+      std::scoped_lock lock(m_rw_mtx);
+
+      m_objects[wrap_index(m_producer_index)] = std::move(element);
+      m_producer_index++;  
+      
+      check_for_index_overflow();
+    };
 
     T consume() {
       while(m_consumer_index+1 == m_producer_index) {
@@ -42,7 +52,7 @@ class spsc_ring_buffer {
       std::scoped_lock lock(m_rw_mtx);
 
       m_consumer_index++;
-      T consumed_element = m_objects[wrap_index(m_consumer_index)]; 
+      T consumed_element = std::move(m_objects[wrap_index(m_consumer_index)]); 
 
       return consumed_element;
     };
@@ -50,11 +60,12 @@ class spsc_ring_buffer {
   private:
     void check_for_index_overflow() {
       //max integer accepted value
-      if (m_producer_index + 1 != MAX_INT32_VALUE) 
+      if (m_producer_index + 1 != INT_MAX) 
         return ;
       
       const int32_t distance_producer_consumer = consumer_producer_distance();
       const int32_t consumer_spot { wrap_index(m_consumer_index)};
+
       m_producer_index = consumer_spot + distance_producer_consumer;  
       m_consumer_index = wrap_index(m_consumer_index);
     }

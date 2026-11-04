@@ -9,6 +9,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 
 include_directories(include/)
+
+add_subdirectory(commands/)
 add_executable(main main.cpp)
+
+target_link_libraries(main commands)
 
 
