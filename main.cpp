@@ -7,7 +7,7 @@
 spsc_ring_buffer<int, 5> RING_BUFFER ;
 
 void produce_sequence() {
-  for (auto i{0}; i < 40; i++) {
+  for (auto i{0}; i < 80; i++ ){
     RING_BUFFER.produce(i);
   }
 
